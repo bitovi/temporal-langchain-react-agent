@@ -10,17 +10,15 @@ const { thought, action, observation } = proxyActivities<typeof activities>({
   },
 });
 
-export async function movieReActAgentWorkflow(
-  userQuestion: string
-): Promise<string> {
+export async function agentWorkflow(query: string): Promise<string> {
   const context: string[] = [];
 
   while (true) {
     // 1. Get the agent's thought based on the current context
-    const agentThought = await thought(userQuestion, context);
+    const agentThought = await thought(query, context);
 
     // 2. Parse the agent's thought to determine action or final answer
-    if ("answer" in agentThought) {
+    if (agentThought.__type === "answer") {
       return agentThought.answer;
     }
 
@@ -39,11 +37,7 @@ export async function movieReActAgentWorkflow(
     );
 
     // 6. The observation will take the result of the action and integrate it back into the context
-    const agentObservation = await observation(
-      userQuestion,
-      context,
-      agentAction
-    );
+    const agentObservation = await observation(query, context, agentAction);
     context.push(`<observation>${agentObservation}</observation>`);
   }
 }

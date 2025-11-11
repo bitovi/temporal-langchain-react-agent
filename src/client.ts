@@ -1,7 +1,7 @@
 import dotenv from "dotenv";
 import { Connection, Client } from "@temporalio/client";
 import { v4 as uuidv4 } from "uuid";
-import { movieReActAgentWorkflow } from "./workflows";
+import { agentWorkflow } from "./workflows";
 import { Config } from "./config";
 
 dotenv.config();
@@ -22,7 +22,7 @@ async function main() {
   };
 
   try {
-    const handle = await client.workflow.start(movieReActAgentWorkflow, {
+    const handle = await client.workflow.start(agentWorkflow, {
       args: ["What movies were directed by Maggie Kang?"],
       ...workflowOptions,
     });

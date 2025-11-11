@@ -7,6 +7,7 @@ import { StructuredTool } from "langchain";
 
 type AgentResult = AgentResultTool | AgentResultFinal;
 type AgentResultTool = {
+  __type: "action";
   thought: string;
   action: {
     name: string;
@@ -16,6 +17,7 @@ type AgentResultTool = {
 };
 
 type AgentResultFinal = {
+  __type: "answer";
   thought: string;
   answer: string;
 };
@@ -35,9 +37,21 @@ export async function thought(
   const response = await model.invoke([{ role: "user", content: prompt }]);
 
   const text = response.content;
-  const parsed = JSON.parse(text as string) as AgentResult;
+  const parsed = JSON.parse(text as string);
 
-  return parsed;
+  if (parsed.hasOwnProperty("answer")) {
+    parsed.__type = "answer";
+  }
+
+  if (parsed.hasOwnProperty("action")) {
+    parsed.__type = "action";
+  }
+
+  if (!parsed.hasOwnProperty("__type")) {
+    throw new Error("Parsed agent result does not have a valid __type");
+  }
+
+  return parsed as AgentResult;
 }
 
 export async function action(
