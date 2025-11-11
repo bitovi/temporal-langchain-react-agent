@@ -8,7 +8,7 @@ The agent follows the ReAct pattern to break down complex queries into a series 
 
 ## Architecture
 
-### Workflow: `movieReActAgentWorkflow`
+### Workflow: `agentWorkflow`
 
 The main workflow orchestrates the ReAct loop:
 
@@ -50,4 +50,4 @@ The project uses environment-based configuration for:
 
 - OpenAI API credentials
 - Model selection
-- Timeout and retry policies
+- API keys
