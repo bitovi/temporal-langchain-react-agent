@@ -1,0 +1,34 @@
+{
+    "name": "temporal-langchain-react-agent",
+    "version": "1.0.0",
+    "description": "A ReAct Agent implemented using Temporal and LangChain",
+    "main": "src/index.ts",
+    "scripts": {
+        "client": "ts-node src/client.ts",
+        "test": "ts-node src/test.ts",
+        "format": "prettier --write \"src/**/*.ts\"",
+        "worker": "ts-node src/worker.ts",
+        "build": "tsc --noEmit",
+        "temporal": "temporal server start-dev"
+    },
+    "keywords": [],
+    "author": "Mark Repka",
+    "license": "MIT",
+    "dependencies": {
+        "@langchain/core": "^1.0.4",
+        "@langchain/openai": "^1.1.0",
+        "@temporalio/activity": "^1.13.1",
+        "@temporalio/client": "^1.13.1",
+        "@temporalio/worker": "^1.13.1",
+        "@temporalio/workflow": "^1.13.1",
+        "dotenv": "^17.2.3",
+        "langchain": "^1.0.4",
+        "openai": "^6.8.1",
+        "zod": "^4.1.12"
+    },
+    "devDependencies": {
+        "@tsconfig/node18": "^18.2.4",
+        "prettier": "^3.6.2",
+        "ts-node": "^10.9.2"
+    }
+}
