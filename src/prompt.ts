@@ -48,9 +48,9 @@ Remember:
     previous.length > 0 ? previous.join("\n") : "None",
     "</previous-steps>",
     "Based on that information, provide your thought process and decide on the next action.",
-    "<available-tools>",
+    "<available-actions>",
     fetchStructuredToolsAsString(),
-    "</available-tools>",
+    "</available-actions>",
   ].join("\n");
 }
 

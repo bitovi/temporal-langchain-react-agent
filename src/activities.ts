@@ -35,9 +35,7 @@ export async function thought(
   });
 
   const response = await model.invoke([{ role: "user", content: prompt }]);
-
-  const text = response.content;
-  const parsed = JSON.parse(text as string);
+  const parsed = JSON.parse(response.content as string);
 
   if (parsed.hasOwnProperty("answer")) {
     parsed.__type = "answer";
