@@ -1,11 +1,10 @@
-import { fetchStructuredToolsAsString } from "./tools";
+import { PromptTemplate } from "@langchain/core/prompts";
 
-export function thoughtPrompt(query: string, previous: string[]): string {
-  return [
-    `You are a ReAct (Reasoning and Acting) agent tasked with answering the following query:
+export function thoughtPromptTemplate() {
+  const templateString = `You are a ReAct (Reasoning and Acting) agent tasked with answering the following query:
 
 <user-query>
-${query}
+{userQuery}
 </user-query>
 
 Your goal is to reason about the query and decide on the best course of action to answer it accurately.
@@ -40,30 +39,38 @@ Remember:
 - If a tool returns no results or fails, acknowledge this and consider using a different tool or approach.
 - Provide a final answer only when you're confident you have sufficient information.
 - If you cannot find the necessary information after using available tools, admit that you don't have enough information to answer the query confidently.
-- Your internal knowledge may be outdated. The current date is ${new Date().toISOString().split("T")[0]}.
+- Your internal knowledge may be outdated. The current date is {currentDate}.
 
-`,
-    "In this thinking step, consider the following information from previous steps:",
-    "<previous-steps>",
-    previous.length > 0 ? previous.join("\n") : "None",
-    "</previous-steps>",
-    "Based on that information, provide your thought process and decide on the next action.",
-    "<available-actions>",
-    fetchStructuredToolsAsString(),
-    "</available-actions>",
-  ].join("\n");
+In this thinking step, consider the following information from previous steps:
+
+<previous-steps>
+{previousSteps}
+</previous-steps>
+
+Based on that information, provide your thought process and decide on the next action.
+<available-actions>
+{availableActions}
+</available-actions>
+`;
+
+  const prompt = new PromptTemplate({
+    template: templateString,
+    inputVariables: [
+      "userQuery",
+      "currentDate",
+      "previousSteps",
+      "availableActions",
+    ],
+  });
+
+  return prompt;
 }
 
-export function observationPrompt(
-  query: string,
-  previous: string[],
-  actionResult: string
-): string {
-  return [
-    `You are a ReAct (Reasoning and Acting) agent tasked with answering the following query:
+export function observationPromptTemplate() {
+  const templateString = `You are a ReAct (Reasoning and Acting) agent tasked with answering the following query:
 
 <user-query>
-${query}
+{userQuery}
 </user-query>
 
 Your goal is to extract insights from the results of your last action and provide a concise observation.
@@ -72,14 +79,23 @@ Instructions:
 1. Analyze the query, previous reasoning steps, and observations.
 2. Extract insights from the latest action result.
 3. Respond with a concise observation that summarizes the results of the last action taken.
-`,
-    "In this observation step, consider the following information from previous steps:",
-    "<previous-steps>",
-    previous.length > 0 ? previous.join("\n") : "None",
-    "</previous-steps>",
-    "Provide your observation based on the latest action result:",
-    "<action-result>",
-    actionResult,
-    "</action-result>",
-  ].join("\n");
+
+In this observation step, consider the following information from previous steps:
+
+<previous-steps>
+{previousSteps}
+</previous-steps>
+
+Provide your observation based on the latest action result:
+<action-result>
+{actionResult}
+</action-result>
+`;
+
+  const prompt = new PromptTemplate({
+    template: templateString,
+    inputVariables: ["userQuery", "previousSteps", "actionResult"],
+  });
+
+  return prompt;
 }

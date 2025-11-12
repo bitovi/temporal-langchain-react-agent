@@ -20,10 +20,10 @@ export async function agentWorkflow(query: string): Promise<string> {
       return agentThought.answer;
     }
 
-    context.push(`<thought>${agentThought.thought}</thought>`);
+    context.push(`<thought>\n${agentThought.thought}\n</thought>`);
 
     context.push(
-      `<action><reason>${agentThought.action.reason}</reason><name>${agentThought.action.name}</name><input>${JSON.stringify(agentThought.action.input)}</input></action>`
+      `<action><reason>\n${agentThought.action.reason}\n</reason><name>${agentThought.action.name}</name><input>${JSON.stringify(agentThought.action.input)}</input></action>`
     );
 
     const agentAction = await action(
@@ -32,6 +32,6 @@ export async function agentWorkflow(query: string): Promise<string> {
     );
 
     const agentObservation = await observation(query, context, agentAction);
-    context.push(`<observation>${agentObservation}</observation>`);
+    context.push(`<observation>\n${agentObservation}\n</observation>`);
   }
 }

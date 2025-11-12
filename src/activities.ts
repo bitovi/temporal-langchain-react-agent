@@ -1,9 +1,9 @@
 import { ChatOpenAI } from "@langchain/openai";
 import { ChatAnthropic } from "@langchain/anthropic";
 
-import { observationPrompt, thoughtPrompt } from "./prompt";
+import { observationPromptTemplate, thoughtPromptTemplate } from "./prompt";
 import { Config } from "./config";
-import { fetchStructuredTools } from "./tools";
+import { fetchStructuredTools, fetchStructuredToolsAsString } from "./tools";
 import { StructuredTool } from "langchain";
 
 type AgentResult = AgentResultTool | AgentResultFinal;
@@ -27,7 +27,13 @@ export async function thought(
   query: string,
   context: string[]
 ): Promise<AgentResult> {
-  const prompt = thoughtPrompt(query, context);
+  const promptTemplate = thoughtPromptTemplate();
+  const formattedPrompt = await promptTemplate.format({
+    userQuery: query,
+    currentDate: new Date().toISOString().split("T")[0],
+    previousSteps: context.join("\n"),
+    availableActions: fetchStructuredToolsAsString(),
+  });
 
   const model = new ChatAnthropic({
     model: Config.ANTHROPIC_MODEL,
@@ -35,7 +41,9 @@ export async function thought(
     streaming: false,
   });
 
-  const response = await model.invoke([{ role: "user", content: prompt }]);
+  const response = await model.invoke([
+    { role: "user", content: formattedPrompt },
+  ]);
   const parsed = JSON.parse(response.content as string);
 
   if (parsed.hasOwnProperty("answer")) {
@@ -85,7 +93,12 @@ export async function observation(
   context: string[],
   actionResult: string
 ): Promise<string> {
-  const prompt = observationPrompt(query, context, actionResult);
+  const promptTemplate = observationPromptTemplate();
+  const formattedPrompt = await promptTemplate.format({
+    userQuery: query,
+    previousSteps: context.join("\n"),
+    actionResult: actionResult,
+  });
 
   const model = new ChatOpenAI({
     model: Config.OPENAI_MODEL,
@@ -93,6 +106,8 @@ export async function observation(
     streaming: false,
   });
 
-  const response = await model.invoke([{ role: "user", content: prompt }]);
+  const response = await model.invoke([
+    { role: "user", content: formattedPrompt },
+  ]);
   return response.content as string;
 }
