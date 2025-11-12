@@ -1,10 +1,7 @@
-import { ChatOpenAI } from "@langchain/openai";
-import { ChatAnthropic } from "@langchain/anthropic";
-
 import { observationPromptTemplate, thoughtPromptTemplate } from "./prompt";
-import { Config } from "./config";
 import { fetchStructuredTools, fetchStructuredToolsAsString } from "./tools";
 import { StructuredTool } from "langchain";
+import { getChatModel } from "./model";
 
 type AgentResult = AgentResultTool | AgentResultFinal;
 type AgentResultTool = {
@@ -35,15 +32,11 @@ export async function thought(
     availableActions: fetchStructuredToolsAsString(),
   });
 
-  const model = new ChatAnthropic({
-    model: Config.ANTHROPIC_MODEL,
-    apiKey: Config.ANTHROPIC_API_KEY,
-    streaming: false,
-  });
-
+  const model = getChatModel();
   const response = await model.invoke([
     { role: "user", content: formattedPrompt },
   ]);
+
   const parsed = JSON.parse(response.content as string);
 
   if (parsed.hasOwnProperty("answer")) {
@@ -100,12 +93,7 @@ export async function observation(
     actionResult: actionResult,
   });
 
-  const model = new ChatOpenAI({
-    model: Config.OPENAI_MODEL,
-    apiKey: Config.OPENAI_API_KEY,
-    streaming: false,
-  });
-
+  const model = getChatModel();
   const response = await model.invoke([
     { role: "user", content: formattedPrompt },
   ]);

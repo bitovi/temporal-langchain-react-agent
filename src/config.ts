@@ -8,7 +8,17 @@ interface TemporalClientOptions {
   };
 }
 
+type ModelProvider = "openai" | "anthropic" | "ollama";
+
 export class Config {
+  static get MODEL_PROVIDER(): ModelProvider {
+    if (!process.env.MODEL_PROVIDER) {
+      return "openai";
+    }
+
+    return process.env.MODEL_PROVIDER as ModelProvider;
+  }
+
   static get OPENAI_API_KEY(): string {
     if (!process.env.OPENAI_API_KEY) {
       throw new Error("OPENAI_API_KEY is not defined in environment variables");
@@ -33,6 +43,14 @@ export class Config {
     }
 
     return process.env.ANTHROPIC_API_KEY;
+  }
+
+  static get OLLAMA_MODEL(): string {
+    if (!process.env.OLLAMA_MODEL) {
+      return "gpt-oss:20b";
+    }
+
+    return process.env.OLLAMA_MODEL;
   }
 
   static get ANTHROPIC_MODEL(): string {
