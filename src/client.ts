@@ -1,6 +1,6 @@
+import { randomUUID } from "node:crypto";
 import dotenv from "dotenv";
 import { Connection, Client } from "@temporalio/client";
-import { v4 as uuidv4 } from "uuid";
 import { agentWorkflow } from "./workflows";
 import { Config } from "./config";
 
@@ -14,7 +14,7 @@ async function main() {
     namespace: Config.TEMPORAL_NAMESPACE,
   });
 
-  const workflowId = `${uuidv4()}`;
+  const workflowId = `${randomUUID()}`;
 
   const workflowOptions = {
     taskQueue: Config.TEMPORAL_TASK_QUEUE,
