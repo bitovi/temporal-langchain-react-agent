@@ -70,7 +70,7 @@ The main workflow orchestrates the ReAct loop:
 
 - Generates agent reasoning based on user query and accumulated context
 - Returns either a tool action to execute or a final answer
-- Uses OpenAI LLM with structured prompts
+- Uses Anthropic LLM with structured output
 
 #### `action(toolName, input)`
 
@@ -82,7 +82,7 @@ The main workflow orchestrates the ReAct loop:
 
 - Processes action results into meaningful observations
 - Updates the reasoning context for subsequent iterations
-- Uses LLM to interpret and synthesize information
+- Uses OpenAI LLM to interpret and synthesize information
 
 ## Features
 
@@ -95,6 +95,9 @@ The main workflow orchestrates the ReAct loop:
 
 The project uses environment-based configuration for:
 
-- OpenAI API credentials
+- [OpenAI API credentials](https://platform.openai.com/api-keys)
+- [Anthropic API credentials](https://console.anthropic.com/settings/keys)
+- [TMDB API credentials](https://developer.themoviedb.org/docs/getting-started)
 - Model selection
-- API keys
+
+Refer to the `.env.example` file for all configurable options.
