@@ -25,6 +25,24 @@ export class Config {
     return process.env.OPENAI_MODEL;
   }
 
+  static get ANTHROPIC_API_KEY(): string {
+    if (!process.env.ANTHROPIC_API_KEY) {
+      throw new Error(
+        "ANTHROPIC_API_KEY is not defined in environment variables"
+      );
+    }
+
+    return process.env.ANTHROPIC_API_KEY;
+  }
+
+  static get ANTHROPIC_MODEL(): string {
+    if (!process.env.ANTHROPIC_MODEL) {
+      return "claude-sonnet-4-5";
+    }
+
+    return process.env.ANTHROPIC_MODEL;
+  }
+
   static get TEMPORAL_NAMESPACE(): string {
     return process.env.TEMPORAL_NAMESPACE || "default";
   }

@@ -2,7 +2,7 @@ import * as z from "zod";
 import { StructuredTool, tool } from "langchain";
 import { Config } from "./config";
 
-function actorSearch(): StructuredTool {
+function personSearch(): StructuredTool {
   return tool(
     async (input) => {
       const url =
@@ -21,17 +21,17 @@ function actorSearch(): StructuredTool {
       return JSON.stringify(data);
     },
     {
-      name: "actor_by_name_search",
+      name: "person_by_name_search",
       description:
-        "Use this tool to search for information about actors by name.",
+        "Use this tool to search for information about persons by name. Uses The Movie Database (TMDb) API.",
       schema: z.object({
-        name: z.string().describe("The name of the actor to search for"),
+        name: z.string().describe("The name of the person to search for"),
       }),
     }
   );
 }
 
-function actorByActorId(): StructuredTool {
+function personByPersonId(): StructuredTool {
   return tool(
     async (input) => {
       const url =
@@ -51,16 +51,19 @@ function actorByActorId(): StructuredTool {
       return JSON.stringify(data);
     },
     {
-      name: "actor_by_id",
-      description: "Use this tool to fetch for information about actors by ID.",
+      name: "person_by_id",
+      description:
+        "Use this tool to fetch for information about persons by ID. Uses The Movie Database (TMDb) API.",
       schema: z.object({
-        id: z.string().describe("The ID of the actor to fetch information for"),
+        id: z
+          .string()
+          .describe("The ID of the person to fetch information for"),
       }),
     }
   );
 }
 
-function actorMovieCreditsByActorId(): StructuredTool {
+function personMovieCreditsByPersonId(): StructuredTool {
   return tool(
     async (input) => {
       const url =
@@ -80,13 +83,13 @@ function actorMovieCreditsByActorId(): StructuredTool {
       return JSON.stringify(data);
     },
     {
-      name: "actor_movie_credits_by_id",
+      name: "person_movie_credits_by_id",
       description:
-        "Use this tool to fetch for movie credits of actors by their ID.",
+        "Use this tool to fetch for movie credits of persons by their ID. Uses The Movie Database (TMDb) API.",
       schema: z.object({
         id: z
           .string()
-          .describe("The ID of the actor to fetch movie credits for"),
+          .describe("The ID of the person to fetch movie credits for"),
       }),
     }
   );
@@ -113,7 +116,7 @@ function movieSearch(): StructuredTool {
     {
       name: "movie_by_title_search",
       description:
-        "Use this tool to search for information about movies by title",
+        "Use this tool to search for information about movies by title. Uses The Movie Database (TMDb) API.",
       schema: z.object({
         title: z.string().describe("The title of the movie to search for"),
       }),
@@ -142,7 +145,8 @@ function movieDetailsByMovieId(): StructuredTool {
     },
     {
       name: "movie_details_by_id",
-      description: "Use this tool to fetch for information about movies by ID",
+      description:
+        "Use this tool to fetch for information about movies by ID. Uses The Movie Database (TMDb) API.",
       schema: z.object({
         id: z.string().describe("The ID of the movie to fetch information for"),
       }),
@@ -152,10 +156,10 @@ function movieDetailsByMovieId(): StructuredTool {
 
 export function fetchStructuredTools(): StructuredTool[] {
   return [
-    actorSearch(),
+    personSearch(),
     movieSearch(),
-    actorByActorId(),
-    actorMovieCreditsByActorId(),
+    personByPersonId(),
+    personMovieCreditsByPersonId(),
     movieDetailsByMovieId(),
   ];
 }

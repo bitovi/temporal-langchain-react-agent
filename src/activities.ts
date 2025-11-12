@@ -1,4 +1,5 @@
 import { ChatOpenAI } from "@langchain/openai";
+import { ChatAnthropic } from "@langchain/anthropic";
 
 import { observationPrompt, thoughtPrompt } from "./prompt";
 import { Config } from "./config";
@@ -28,9 +29,9 @@ export async function thought(
 ): Promise<AgentResult> {
   const prompt = thoughtPrompt(query, context);
 
-  const model = new ChatOpenAI({
-    model: Config.OPENAI_MODEL,
-    apiKey: Config.OPENAI_API_KEY,
+  const model = new ChatAnthropic({
+    model: Config.ANTHROPIC_MODEL,
+    apiKey: Config.ANTHROPIC_API_KEY,
     streaming: false,
   });
 
