@@ -45,6 +45,12 @@ The agent follows the ReAct pattern to break down complex queries into a series 
    npm run worker
    ```
 
+   If you want to test out the Agent-2-Agent integration, you can start the server and worker together:
+
+   ```bash
+   npm run server
+   ```
+
 6. **Start the Workflow**:
 
    This starts the client that will initiate the ReAct agent workflow.
@@ -52,6 +58,8 @@ The agent follows the ReAct pattern to break down complex queries into a series 
    ```bash
    npm run client
    ```
+
+   If you want to test out the Agent-2-Agent integration, set the CLIENT_MODE environment variable to `a2a` in your `.env` file.
 
 ## Architecture
 
