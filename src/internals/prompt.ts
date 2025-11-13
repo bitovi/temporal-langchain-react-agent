@@ -99,3 +99,36 @@ Provide your observation based on the latest action result:
 
   return prompt;
 }
+
+export function compactPromptTemplate() {
+  const templateString = `You are a summarization agent tasked with compacting the context of a ReAct (Reasoning and Acting) agent.
+  
+Your goal is to summarize the provided context, attempting to preserve the most important parts of the context history.
+
+Instructions:
+1. Review the provided context history.
+2. Summarize the context, focusing on preserving key information and recent steps.
+3. Ensure that the most recent parts of the context remain intact.
+
+For reference, here is the oringinal user question that the agent is trying to answer:
+
+<user-query>
+{userQuery}
+</user-query>
+
+Here is the context history to be compacted:
+
+<context-history>
+{contextHistory}
+</context-history>
+
+Provide a compacted version of the context history, preserving important details and recent steps.
+`;
+
+  const prompt = new PromptTemplate({
+    template: templateString,
+    inputVariables: ["userQuery", "contextHistory"],
+  });
+
+  return prompt;
+}

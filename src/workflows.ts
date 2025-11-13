@@ -1,7 +1,14 @@
-import { proxyActivities } from "@temporalio/workflow";
+import {
+  continueAsNew,
+  proxyActivities,
+  workflowInfo,
+} from "@temporalio/workflow";
 import type * as activities from "./activities";
+import { UsageMetadata } from "@langchain/core/messages";
 
-const { thought, action, observation } = proxyActivities<typeof activities>({
+const { thought, action, observation, compact } = proxyActivities<
+  typeof activities
+>({
   startToCloseTimeout: "1 minute",
   retry: {
     backoffCoefficient: 1,
@@ -10,28 +17,92 @@ const { thought, action, observation } = proxyActivities<typeof activities>({
   },
 });
 
-export async function agentWorkflow(query: string): Promise<string> {
-  const context: string[] = [];
+export type AgentWorkflowInput = {
+  query: string;
+  continueAsNew?: {
+    context: string[];
+    usage: UsageMetadata[];
+  };
+};
+
+export async function agentWorkflow(
+  input: AgentWorkflowInput,
+): Promise<{ answer: string; usage: UsageMetadata }> {
+  const context: string[] = input.continueAsNew
+    ? input.continueAsNew.context
+    : [];
+  const usage: UsageMetadata[] = input.continueAsNew
+    ? input.continueAsNew.usage
+    : [];
+
+  const maxIterations = 5; // This would be much larger in a real application.
+  let iterations = 0;
 
   while (true) {
-    const agentThought = await thought(query, context);
+    const agentThought = await thought(input.query, context);
+
+    if (agentThought.usage) {
+      usage.push(agentThought.usage);
+    }
 
     if (agentThought.__type === "answer") {
-      return agentThought.answer;
+      // Calculate the final usage metrics based on the collected metadata
+      const finalUsage: UsageMetadata = usage.reduce(
+        (acc, curr) => {
+          acc.input_tokens += curr.input_tokens;
+          acc.output_tokens += curr.output_tokens;
+          acc.total_tokens += curr.total_tokens;
+          return acc;
+        },
+        {
+          input_tokens: 0,
+          output_tokens: 0,
+          total_tokens: 0,
+        },
+      );
+
+      return { answer: agentThought.answer, usage: finalUsage };
     }
 
     context.push(`<thought>\n${agentThought.thought}\n</thought>`);
 
     context.push(
-      `<action><reason>\n${agentThought.action.reason}\n</reason><name>${agentThought.action.name}</name><input>${JSON.stringify(agentThought.action.input)}</input></action>`
+      `<action><reason>\n${agentThought.action.reason}\n</reason><name>${agentThought.action.name}</name><input>${JSON.stringify(agentThought.action.input)}</input></action>`,
     );
 
     const agentAction = await action(
       agentThought.action.name,
-      agentThought.action.input
+      agentThought.action.input,
     );
 
-    const agentObservation = await observation(query, context, agentAction);
-    context.push(`<observation>\n${agentObservation}\n</observation>`);
+    const agentObservation = await observation(
+      input.query,
+      context,
+      agentAction,
+    );
+
+    if (agentObservation.usage) {
+      usage.push(agentObservation.usage);
+    }
+
+    context.push(
+      `<observation>\n${agentObservation.observations}\n</observation>`,
+    );
+
+    iterations++;
+
+    if (workflowInfo().continueAsNewSuggested || iterations >= maxIterations) {
+      const compactContext = await compact(input.query, context);
+      if (compactContext.usage) {
+        usage.push(compactContext.usage);
+      }
+      return continueAsNew<typeof agentWorkflow>({
+        query: input.query,
+        continueAsNew: {
+          context: compactContext.context,
+          usage,
+        },
+      });
+    }
   }
 }

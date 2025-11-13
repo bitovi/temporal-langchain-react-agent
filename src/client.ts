@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import { Connection, Client } from "@temporalio/client";
 import { agentWorkflow } from "./workflows";
 import { Config } from "./internals/config";
+import { UsageMetadata } from "@langchain/core/messages";
 
 dotenv.config();
 
@@ -23,15 +24,23 @@ async function main() {
 
   try {
     const handle = await client.workflow.start(agentWorkflow, {
-      args: ["What movies were directed by Maggie Kang? Who starred in them?"],
+      args: [
+        {
+          query:
+            "What movies were directed by Maggie Kang? Who starred in them?",
+        },
+      ],
       ...workflowOptions,
     });
 
     console.log("Workflow started with ID: %s", handle.workflowId);
 
-    const result: string = await handle.result();
+    const result: { answer: string; usage: UsageMetadata } =
+      await handle.result();
 
-    console.log(`Response: ${result}`);
+    console.log(`Response: ${result.answer}`);
+
+    console.log("Usage Metrics: ", JSON.stringify(result.usage, null, 2));
   } catch (error: any) {
     console.error("Error executing workflow:", error);
     process.exit(1);
