@@ -23,7 +23,7 @@ async function main() {
 
   try {
     const handle = await client.workflow.start(agentWorkflow, {
-      args: ["What movies were directed by Maggie Kang?"],
+      args: ["What movies were directed by Maggie Kang? Who starred in them?"],
       ...workflowOptions,
     });
 
