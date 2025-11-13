@@ -1,7 +1,13 @@
-import { observationPromptTemplate, thoughtPromptTemplate } from "./prompt";
-import { fetchStructuredTools, fetchStructuredToolsAsString } from "./tools";
+import {
+  observationPromptTemplate,
+  thoughtPromptTemplate,
+} from "./internals/prompt";
+import {
+  fetchStructuredTools,
+  fetchStructuredToolsAsString,
+} from "./internals/tools";
 import { StructuredTool } from "langchain";
-import { getChatModel } from "./model";
+import { getChatModel } from "./internals/model";
 
 type AgentResult = AgentResultTool | AgentResultFinal;
 type AgentResultTool = {
@@ -22,7 +28,7 @@ type AgentResultFinal = {
 
 export async function thought(
   query: string,
-  context: string[]
+  context: string[],
 ): Promise<AgentResult> {
   const promptTemplate = thoughtPromptTemplate();
   const formattedPrompt = await promptTemplate.format({
@@ -56,7 +62,7 @@ export async function thought(
 
 export async function action(
   toolName: string,
-  input: object | string
+  input: object | string,
 ): Promise<string> {
   const tools: StructuredTool[] = fetchStructuredTools();
   const tool = tools.find((t) => t.name === toolName);
@@ -84,7 +90,7 @@ export async function action(
 export async function observation(
   query: string,
   context: string[],
-  actionResult: string
+  actionResult: string,
 ): Promise<string> {
   const promptTemplate = observationPromptTemplate();
   const formattedPrompt = await promptTemplate.format({

@@ -6,7 +6,7 @@ const { thought, action, observation } = proxyActivities<typeof activities>({
   retry: {
     backoffCoefficient: 1,
     initialInterval: "3 seconds",
-    maximumAttempts: 3,
+    maximumAttempts: 5,
   },
 });
 
