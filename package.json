@@ -8,6 +8,7 @@
         "test": "ts-node src/test.ts",
         "format": "prettier --write \"src/**/*.ts\"",
         "worker": "ts-node src/worker.ts",
+        "server": "ts-node src/server.ts",
         "build": "tsc --noEmit",
         "temporal": "temporal server start-dev"
     },
@@ -15,6 +16,7 @@
     "author": "Mark Repka",
     "license": "MIT",
     "dependencies": {
+        "@a2a-js/sdk": "^0.3.5",
         "@langchain/anthropic": "^1.0.0",
         "@langchain/core": "^1.0.4",
         "@langchain/ollama": "^1.0.1",
@@ -24,11 +26,13 @@
         "@temporalio/worker": "^1.13.2",
         "@temporalio/workflow": "^1.13.2",
         "dotenv": "^17.2.3",
+        "express": "^5.1.0",
         "langchain": "^1.0.4",
         "zod": "^4.1.12"
     },
     "devDependencies": {
         "@tsconfig/node24": "^24.0.1",
+        "@types/express": "^5.0.5",
         "prettier": "^3.6.2",
         "ts-node": "^10.9.2"
     },
