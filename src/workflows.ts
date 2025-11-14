@@ -35,9 +35,6 @@ export async function agentWorkflow(
     ? input.continueAsNew.usage
     : [];
 
-  const maxIterations = 5; // This would be much larger in a real application.
-  let iterations = 0;
-
   while (true) {
     const agentThought = await thought(input.query, context);
 
@@ -89,9 +86,7 @@ export async function agentWorkflow(
       `<observation>\n${agentObservation.observations}\n</observation>`,
     );
 
-    iterations++;
-
-    if (workflowInfo().continueAsNewSuggested || iterations >= maxIterations) {
+    if (workflowInfo().continueAsNewSuggested) {
       const compactContext = await compact(input.query, context);
       if (compactContext.usage) {
         usage.push(compactContext.usage);
