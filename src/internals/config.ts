@@ -54,7 +54,7 @@ export class Config {
   static get ANTHROPIC_API_KEY(): string {
     if (!process.env.ANTHROPIC_API_KEY) {
       throw new Error(
-        "ANTHROPIC_API_KEY is not defined in environment variables"
+        "ANTHROPIC_API_KEY is not defined in environment variables",
       );
     }
 

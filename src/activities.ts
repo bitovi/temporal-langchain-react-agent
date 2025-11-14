@@ -1,7 +1,15 @@
-import { observationPromptTemplate, thoughtPromptTemplate } from "./prompt";
-import { fetchStructuredTools, fetchStructuredToolsAsString } from "./tools";
+import {
+  compactPromptTemplate,
+  observationPromptTemplate,
+  thoughtPromptTemplate,
+} from "./internals/prompt";
+import {
+  fetchStructuredTools,
+  fetchStructuredToolsAsString,
+} from "./internals/tools";
 import { StructuredTool } from "langchain";
-import { getChatModel } from "./model";
+import { getChatModel } from "./internals/model";
+import { UsageMetadata } from "@langchain/core/messages";
 
 type AgentResult = AgentResultTool | AgentResultFinal;
 type AgentResultTool = {
@@ -12,17 +20,29 @@ type AgentResultTool = {
     reason: string;
     input: string | object;
   };
+  usage?: UsageMetadata;
 };
 
 type AgentResultFinal = {
   __type: "answer";
   thought: string;
   answer: string;
+  usage?: UsageMetadata;
+};
+
+type ObservationResult = {
+  observations: string;
+  usage?: UsageMetadata;
+};
+
+type CompactionResult = {
+  context: string[];
+  usage?: UsageMetadata;
 };
 
 export async function thought(
   query: string,
-  context: string[]
+  context: string[],
 ): Promise<AgentResult> {
   const promptTemplate = thoughtPromptTemplate();
   const formattedPrompt = await promptTemplate.format({
@@ -41,10 +61,12 @@ export async function thought(
 
   if (parsed.hasOwnProperty("answer")) {
     parsed.__type = "answer";
+    parsed.usage = response.usage_metadata;
   }
 
   if (parsed.hasOwnProperty("action")) {
     parsed.__type = "action";
+    parsed.usage = response.usage_metadata;
   }
 
   if (!parsed.hasOwnProperty("__type")) {
@@ -56,14 +78,14 @@ export async function thought(
 
 export async function action(
   toolName: string,
-  input: object | string
+  input: object | string,
 ): Promise<string> {
   const tools: StructuredTool[] = fetchStructuredTools();
   const tool = tools.find((t) => t.name === toolName);
   if (tool) {
     try {
       const result = await tool.invoke(input);
-      return result;
+      return result as string;
     } catch (err: unknown) {
       const error = err as Error;
       return JSON.stringify({
@@ -84,8 +106,8 @@ export async function action(
 export async function observation(
   query: string,
   context: string[],
-  actionResult: string
-): Promise<string> {
+  actionResult: string,
+): Promise<ObservationResult> {
   const promptTemplate = observationPromptTemplate();
   const formattedPrompt = await promptTemplate.format({
     userQuery: query,
@@ -97,5 +119,30 @@ export async function observation(
   const response = await model.invoke([
     { role: "user", content: formattedPrompt },
   ]);
-  return response.content as string;
+  return {
+    observations: response.content as string,
+    usage: response.usage_metadata,
+  };
+}
+
+export async function compact(
+  query: string,
+  context: string[],
+): Promise<CompactionResult> {
+  const compactTemplate = compactPromptTemplate();
+  const formattedPrompt = await compactTemplate.format({
+    userQuery: query,
+    contextHistory: context.join("\n"),
+  });
+
+  const model = getChatModel();
+  const response = await model.invoke([
+    { role: "user", content: formattedPrompt },
+  ]);
+
+  // Return the latest 3 context entries along with the new compacted context
+  return {
+    context: [response.content as string, ...context.slice(-3)],
+    usage: response.usage_metadata,
+  };
 }

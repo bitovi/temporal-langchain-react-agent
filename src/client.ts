@@ -4,12 +4,14 @@ import { Message, MessageSendParams, TextPart } from "@a2a-js/sdk";
 import dotenv from "dotenv";
 import { Connection, Client } from "@temporalio/client";
 import { agentWorkflow } from "./workflows";
-import { Config } from "./config";
+import { Config } from "./internals/config";
+import { UsageMetadata } from "@langchain/core/messages";
 
 dotenv.config();
 
 async function main() {
-  const question = "What movies were directed by Maggie Kang?";
+  const question =
+    "What movies were directed by Maggie Kang? Who starred in them?";
 
   if (Config.CLIENT_MODE === "a2a") {
     await a2aClient(question);
@@ -25,7 +27,7 @@ async function a2aClient(question: string) {
 
   // Create a client pointing to the agent's Agent Card URL.
   const client = await A2AClient.fromCardUrl(
-    `http://localhost:${Config.SERVER_PORT}/.well-known/agent-card.json`
+    `http://localhost:${Config.SERVER_PORT}/.well-known/agent-card.json`,
   );
 
   const sendParams: MessageSendParams = {
@@ -63,15 +65,18 @@ async function temporalClient(question: string) {
 
   try {
     const handle = await client.workflow.start(agentWorkflow, {
-      args: [question],
+      args: [{ query: question }],
       ...workflowOptions,
     });
 
     console.log("Workflow started with ID: %s", handle.workflowId);
 
-    const result: string = await handle.result();
+    const result: { answer: string; usage: UsageMetadata } =
+      await handle.result();
 
-    console.log(`Response: ${result}`);
+    console.log(`Response: ${result.answer}`);
+
+    console.log("Usage Metrics: ", JSON.stringify(result.usage, null, 2));
   } catch (error: any) {
     console.error("Error executing workflow:", error);
     process.exit(1);

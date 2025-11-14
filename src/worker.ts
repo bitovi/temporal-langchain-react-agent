@@ -1,7 +1,7 @@
 import dotenv from "dotenv";
 import { NativeConnection, Worker } from "@temporalio/worker";
 import * as activities from "./activities";
-import { Config } from "./config";
+import { Config } from "./internals/config";
 
 dotenv.config();
 

@@ -41,6 +41,8 @@ Remember:
 - If you cannot find the necessary information after using available tools, admit that you don't have enough information to answer the query confidently.
 - Your internal knowledge may be outdated. The current date is {currentDate}.
 
+You do not need to include any XML tags such as <thought>, <action>, or <observation> in your response, those will be added automatically by the Agent Workflow.
+
 In this thinking step, consider the following information from previous steps:
 
 <previous-steps>
@@ -80,6 +82,8 @@ Instructions:
 2. Extract insights from the latest action result.
 3. Respond with a concise observation that summarizes the results of the last action taken.
 
+You do not need to include any XML tags such as <thought>, <action>, or <observation> in your response, those will be added automatically by the Agent Workflow.
+
 In this observation step, consider the following information from previous steps:
 
 <previous-steps>
@@ -95,6 +99,41 @@ Provide your observation based on the latest action result:
   const prompt = new PromptTemplate({
     template: templateString,
     inputVariables: ["userQuery", "previousSteps", "actionResult"],
+  });
+
+  return prompt;
+}
+
+export function compactPromptTemplate() {
+  const templateString = `You are a summarization agent tasked with compacting the context of a ReAct (Reasoning and Acting) agent.
+  
+Your goal is to summarize the provided context, attempting to preserve the most important parts of the context history.
+
+Instructions:
+1. Review the provided context history.
+2. Summarize the context, focusing on preserving key information and recent steps.
+3. Ensure that the most recent parts of the context remain intact.
+
+You do not need to include any XML tags such as <thought>, <action>, or <observation> in your response, those will be added automatically by the Agent Workflow.
+
+For reference, here is the oringinal user question that the agent is trying to answer:
+
+<user-query>
+{userQuery}
+</user-query>
+
+Here is the context history to be compacted:
+
+<context-history>
+{contextHistory}
+</context-history>
+
+Provide a compacted version of the context history, preserving important details and recent steps.
+`;
+
+  const prompt = new PromptTemplate({
+    template: templateString,
+    inputVariables: ["userQuery", "contextHistory"],
   });
 
   return prompt;

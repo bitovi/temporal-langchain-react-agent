@@ -11,14 +11,15 @@ import {
 } from "@a2a-js/sdk/server";
 import { A2AExpressApp } from "@a2a-js/sdk/server/express";
 import { Client, WorkflowClient, Connection } from "@temporalio/client";
-import { Config } from "./config";
 import { agentWorkflow } from "./workflows";
 import { startWorker } from "./worker";
+import { UsageMetadata } from "@langchain/core/messages";
+import { Config } from "./internals/config";
 
 const helloAgentCard: AgentCard = {
-  name: "Movie Agent",
+  name: "TMDb Agent",
   description:
-    "An agent that can perform deep research about movie, actors, directors, and genres.",
+    "An agent that can perform deep research about movie, shows, actors, directors, and genres.",
   protocolVersion: "0.3.0",
   version: "0.1.0",
   url: "http://localhost:4000/",
@@ -26,7 +27,7 @@ const helloAgentCard: AgentCard = {
     {
       id: "chat",
       name: "Movie Chat",
-      description: "Ask about movies, actors, directors, and genres.",
+      description: "Ask about movies, shows, actors, directors, and genres.",
       tags: ["chat"],
     },
   ],
@@ -69,21 +70,23 @@ class HelloExecutor implements AgentExecutor {
 
     try {
       const handle = await client.workflow.start(agentWorkflow, {
-        args: [question],
+        args: [{ query: question }],
         ...workflowOptions,
       });
 
       console.log("Workflow started with ID: %s", handle.workflowId);
 
-      const result: string = await handle.result();
-      console.log(`Response: ${result}`);
+      const result: { answer: string; usage: UsageMetadata } =
+        await handle.result();
+      console.log(`Response: ${result.answer}`);
+      console.log("Usage Metrics: ", JSON.stringify(result.usage, null, 2));
 
       // Create a direct message response.
       const responseMessage: Message = {
         kind: "message",
         messageId: randomUUID(),
         role: "agent",
-        parts: [{ kind: "text", text: result }],
+        parts: [{ kind: "text", text: result.answer }],
         // Associate the response with the incoming request's context.
         contextId: requestContext.contextId,
       };
