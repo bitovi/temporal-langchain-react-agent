@@ -30,6 +30,19 @@ async function a2aClient(question: string) {
     `http://localhost:${Config.SERVER_PORT}/.well-known/agent-card.json`,
   );
 
+  const agentCard = await client.getAgentCard();
+  console.log(`Connected to Agent: ${agentCard.name || "Unnamed Agent"}`);
+  console.log(
+    `Agent Description: ${agentCard.description || "No description available"}`,
+  );
+  console.log(
+    `Agent Provider: ${agentCard.provider?.organization || "Unknown Provider"}`,
+  );
+  console.log(
+    `Agent Provider URL: ${agentCard.provider?.url || "No URL available"}`,
+  );
+  console.log(`Agent Version: ${agentCard.version || "No version available"}`);
+
   const sendParams: MessageSendParams = {
     message: {
       messageId: randomUUID(),
