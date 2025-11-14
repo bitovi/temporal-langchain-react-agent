@@ -53,13 +53,15 @@ The agent follows the ReAct pattern to break down complex queries into a series 
 
 6. **Start the Workflow**:
 
-   This starts the client that will initiate the ReAct agent workflow.
+   There are two different npm scripts to start the workflow, depending on whether you want to run it using Temporal directly or via Agent-2-Agent.
 
    ```bash
-   npm run client
+   npm run client:temporal
    ```
 
-   If you want to test out the Agent-2-Agent integration, set the CLIENT_MODE environment variable to `a2a` in your `.env` file.
+   ```bash
+   npm run client:a2a
+   ```
 
 ## Architecture
 
