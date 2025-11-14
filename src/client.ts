@@ -9,15 +9,15 @@ import { UsageMetadata } from "@langchain/core/messages";
 
 dotenv.config();
 
-async function main() {
+async function main(mode: "a2a" | "temporal") {
   const question =
     "What movies were directed by Maggie Kang? Who starred in them?";
 
-  if (Config.CLIENT_MODE === "a2a") {
+  if (mode === "a2a") {
     await a2aClient(question);
   }
 
-  if (Config.CLIENT_MODE === "temporal") {
+  if (mode === "temporal") {
     await temporalClient(question);
   }
 }
@@ -83,7 +83,15 @@ async function temporalClient(question: string) {
   }
 }
 
-main().catch((error) => {
+const mode = process.argv[2];
+if (mode !== "a2a" && mode !== "temporal") {
+  console.error(
+    'Please specify client mode as either "a2a" or "temporal". Example: "ts-node src/client.ts a2a"',
+  );
+  process.exit(1);
+}
+
+main(mode).catch((error) => {
   console.error("Unexpected error:", error);
   process.exit(1);
 });

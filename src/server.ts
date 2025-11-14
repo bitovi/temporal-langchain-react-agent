@@ -31,7 +31,10 @@ const helloAgentCard: AgentCard = {
       tags: ["chat"],
     },
   ],
-  capabilities: {},
+  capabilities: {
+    streaming: false,
+    pushNotifications: false,
+  },
   defaultInputModes: [],
   defaultOutputModes: [],
 };
@@ -40,7 +43,7 @@ const helloAgentCard: AgentCard = {
 class HelloExecutor implements AgentExecutor {
   async execute(
     requestContext: RequestContext,
-    eventBus: ExecutionEventBus
+    eventBus: ExecutionEventBus,
   ): Promise<void> {
     // Print out the actual question
     console.log(`Received: ${JSON.stringify(requestContext)}`);
@@ -130,7 +133,7 @@ const agentExecutor = new HelloExecutor();
 const requestHandler = new DefaultRequestHandler(
   helloAgentCard,
   new InMemoryTaskStore(),
-  agentExecutor
+  agentExecutor,
 );
 
 const appBuilder = new A2AExpressApp(requestHandler);
@@ -143,7 +146,7 @@ if (require.main === module) {
       console.log("Starting Express server...");
       expressApp.listen(Config.SERVER_PORT, () => {
         console.log(
-          `🚀 Server started on http://localhost:${Config.SERVER_PORT}`
+          `🚀 Server started on http://localhost:${Config.SERVER_PORT}`,
         );
       });
 

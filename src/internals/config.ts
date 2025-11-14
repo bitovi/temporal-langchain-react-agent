@@ -11,14 +11,6 @@ interface TemporalClientOptions {
 type ModelProvider = "openai" | "anthropic" | "ollama";
 
 export class Config {
-  static get CLIENT_MODE(): "a2a" | "temporal" {
-    if (!process.env.CLIENT_MODE) {
-      return "temporal";
-    }
-
-    return process.env.CLIENT_MODE as "a2a" | "temporal";
-  }
-
   static get SERVER_PORT(): number {
     if (!process.env.SERVER_PORT) {
       return 4000;

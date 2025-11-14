@@ -4,7 +4,8 @@
     "description": "A ReAct Agent implemented using Temporal and LangChain",
     "main": "src/index.ts",
     "scripts": {
-        "client": "ts-node src/client.ts",
+        "client:temporal": "ts-node src/client.ts temporal",
+        "client:a2a": "ts-node src/client.ts a2a",
         "test": "ts-node src/test.ts",
         "format": "prettier --write \"src/**/*.ts\"",
         "worker": "ts-node src/worker.ts",
