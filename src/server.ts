@@ -17,33 +17,40 @@ import { UsageMetadata } from "@langchain/core/messages";
 import { Config } from "./internals/config";
 
 const helloAgentCard: AgentCard = {
-  name: "TMDb Agent",
+  name: "Bitovi Example Agent",
   description:
     "An agent that can perform deep research about movie, shows, actors, directors, and genres.",
   protocolVersion: "0.3.0",
   version: "0.1.0",
+  provider: {
+    organization: "Bitovi",
+    url: "https://bitovi.com",
+  },
   url: "http://localhost:4000/",
   skills: [
     {
-      id: "chat",
-      name: "Movie Chat",
+      id: "tmdb-chat",
+      name: "The Movie Database Chat",
       description: "Ask about movies, shows, actors, directors, and genres.",
-      tags: ["chat"],
+      tags: ["movies", "tv", "entertainment", "actors", "directors", "genres"],
+      inputModes: ["text"],
+      outputModes: ["text"],
     },
   ],
   capabilities: {
     streaming: false,
     pushNotifications: false,
   },
-  defaultInputModes: [],
-  defaultOutputModes: [],
+  defaultInputModes: ["text"],
+  defaultOutputModes: ["text"],
+  supportsAuthenticatedExtendedCard: false,
 };
 
 // 2. Implement the agent's logic.
 class HelloExecutor implements AgentExecutor {
   async execute(
     requestContext: RequestContext,
-    eventBus: ExecutionEventBus,
+    eventBus: ExecutionEventBus
   ): Promise<void> {
     // Print out the actual question
     console.log(`Received: ${JSON.stringify(requestContext)}`);
@@ -133,7 +140,7 @@ const agentExecutor = new HelloExecutor();
 const requestHandler = new DefaultRequestHandler(
   helloAgentCard,
   new InMemoryTaskStore(),
-  agentExecutor,
+  agentExecutor
 );
 
 const appBuilder = new A2AExpressApp(requestHandler);
@@ -146,7 +153,7 @@ if (require.main === module) {
       console.log("Starting Express server...");
       expressApp.listen(Config.SERVER_PORT, () => {
         console.log(
-          `🚀 Server started on http://localhost:${Config.SERVER_PORT}`,
+          `🚀 Server started on http://localhost:${Config.SERVER_PORT}`
         );
       });
 
