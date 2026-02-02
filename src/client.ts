@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 import { Connection, Client } from "@temporalio/client";
 import { agentWorkflow } from "./workflows";
 import { Config } from "./internals/config";
-import { UsageMetadata } from "@langchain/core/messages";
+import { AgentUsage } from "./internals/type";
 
 dotenv.config();
 
@@ -35,8 +35,7 @@ async function main() {
 
     console.log("Workflow started with ID: %s", handle.workflowId);
 
-    const result: { answer: string; usage: UsageMetadata } =
-      await handle.result();
+    const result: { answer: string; usage: AgentUsage } = await handle.result();
 
     console.log(`Response: ${result.answer}`);
 

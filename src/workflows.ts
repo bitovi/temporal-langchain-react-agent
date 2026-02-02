@@ -4,7 +4,7 @@ import {
   workflowInfo,
 } from "@temporalio/workflow";
 import type * as activities from "./activities";
-import { UsageMetadata } from "@langchain/core/messages";
+import { AgentUsage } from "./internals/type";
 
 const { thought, action, observation, compact } = proxyActivities<
   typeof activities
@@ -21,17 +21,17 @@ export type AgentWorkflowInput = {
   query: string;
   continueAsNew?: {
     context: string[];
-    usage: UsageMetadata[];
+    usage: AgentUsage[];
   };
 };
 
 export async function agentWorkflow(
   input: AgentWorkflowInput,
-): Promise<{ answer: string; usage: UsageMetadata }> {
+): Promise<{ answer: string; usage: AgentUsage }> {
   const context: string[] = input.continueAsNew
     ? input.continueAsNew.context
     : [];
-  const usage: UsageMetadata[] = input.continueAsNew
+  const usage: AgentUsage[] = input.continueAsNew
     ? input.continueAsNew.usage
     : [];
 
@@ -46,18 +46,21 @@ export async function agentWorkflow(
 
     if (agentThought.answer) {
       // Calculate the final usage metrics based on the collected metadata
-      const finalUsage: UsageMetadata = usage.reduce(
+      const finalUsage: AgentUsage = usage.reduce(
         (acc, curr) => {
           acc.input_tokens += curr.input_tokens;
           acc.output_tokens += curr.output_tokens;
           acc.total_tokens += curr.total_tokens;
+          acc.cost += curr.cost;
+
           return acc;
         },
         {
           input_tokens: 0,
           output_tokens: 0,
           total_tokens: 0,
-        },
+          cost: 0,
+        } as AgentUsage,
       );
 
       return { answer: agentThought.answer, usage: finalUsage };

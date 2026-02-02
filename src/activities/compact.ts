@@ -1,11 +1,12 @@
-import { UsageMetadata } from "@langchain/core/messages";
 import { PromptTemplate } from "@langchain/core/prompts";
 
 import { getChatModel } from "../internals/model";
+import { AgentUsage } from "../internals/type";
+import { calculateUsageCost } from "../internals/usage";
 
 type CompactionResult = {
   context: string[];
-  usage?: UsageMetadata;
+  usage?: AgentUsage;
 };
 
 export async function compact(
@@ -26,7 +27,7 @@ export async function compact(
   // Return the latest 3 context entries along with the new compacted context
   return {
     context: [response.content as string, ...context.slice(-3)],
-    usage: response.usage_metadata,
+    usage: calculateUsageCost(response.usage_metadata, "low"),
   };
 }
 

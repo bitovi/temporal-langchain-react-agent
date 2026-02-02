@@ -1,11 +1,12 @@
-import { UsageMetadata } from "@langchain/core/messages";
 import { PromptTemplate } from "@langchain/core/prompts";
 
 import { getChatModel } from "../internals/model";
+import { AgentUsage } from "../internals/type";
+import { calculateUsageCost } from "../internals/usage";
 
 type ObservationResult = {
   observations: string;
-  usage?: UsageMetadata;
+  usage?: AgentUsage;
 };
 
 export async function observation(
@@ -26,7 +27,7 @@ export async function observation(
   ]);
   return {
     observations: response.content as string,
-    usage: response.usage_metadata,
+    usage: calculateUsageCost(response.usage_metadata, "low"),
   };
 }
 

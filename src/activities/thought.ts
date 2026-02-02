@@ -1,8 +1,10 @@
-import { UsageMetadata } from "@langchain/core/messages";
 import { PromptTemplate } from "@langchain/core/prompts";
 
 import { fetchStructuredToolsAsString } from "../internals/tools";
 import { getChatModel } from "../internals/model";
+import { AgentUsage } from "../internals/type";
+import { calculateUsageCost } from "../internals/usage";
+import { UsageMetadata } from "@langchain/core/messages";
 
 type AgentResult = {
   thought: string;
@@ -12,7 +14,7 @@ type AgentResult = {
     input: string | object;
   };
   answer?: string;
-  usage?: UsageMetadata;
+  usage?: AgentUsage;
 };
 
 export async function thought(
@@ -30,7 +32,7 @@ export async function thought(
   const model = getChatModel("high");
 
   // Use structured output to enforce the response format, same as we define in the prompt
-  const structure = model.withStructuredOutput(
+  const structure = model.withStructuredOutput<AgentResult>(
     {
       type: "object",
       additionalProperties: false,
@@ -82,10 +84,11 @@ export async function thought(
     result.action = parsed.action;
   }
 
-  // @ts-expect-error this property should exist on AIMessage
+  // @ts-expect-error this property does exist
   if (raw.usage_metadata) {
-    // @ts-expect-error this property should exist on AIMessage
-    result.usage = raw.usage_metadata;
+    // @ts-expect-error this property does exist
+    const usage = raw.usage_metadata as unknown as UsageMetadata;
+    result.usage = calculateUsageCost(usage, "high");
   }
 
   return result as AgentResult;
