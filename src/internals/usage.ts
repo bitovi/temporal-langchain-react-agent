@@ -46,3 +46,10 @@ export function calculateUsageCost(
     cost: total,
   };
 }
+
+export function calculateTokenUsage(context: string[]): number {
+  // Use a simple calculation of the number of characters divided by 4 as a proxy for tokens
+  const text = context.join("\n");
+  const numTokens = Math.ceil(text.length / 4);
+  return numTokens;
+}

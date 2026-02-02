@@ -4,15 +4,13 @@ import {
   workflowInfo,
 } from "@temporalio/workflow";
 import type * as activities from "./activities";
-import type { AgentUsage } from "./internals/usage";
+import { calculateTokenUsage, type AgentUsage } from "./internals/usage";
 
 const { thought, action, observation, compact } = proxyActivities<
   typeof activities
 >({
   startToCloseTimeout: "1 minute",
   retry: {
-    backoffCoefficient: 1,
-    initialInterval: "3 seconds",
     maximumAttempts: 5,
   },
 });
@@ -36,6 +34,23 @@ export async function agentWorkflow(
     : [];
 
   while (true) {
+    if (
+      workflowInfo().continueAsNewSuggested ||
+      calculateTokenUsage(context) > 12000
+    ) {
+      const compactContext = await compact(input.query, context);
+      if (compactContext.usage) {
+        usage.push(compactContext.usage);
+      }
+      return continueAsNew<typeof agentWorkflow>({
+        query: input.query,
+        continueAsNew: {
+          context: compactContext.context,
+          usage,
+        },
+      });
+    }
+
     const agentThought = await thought(input.query, context);
 
     if (agentThought.usage) {
@@ -90,19 +105,34 @@ export async function agentWorkflow(
         `<observation>\n${agentObservation.observations}\n</observation>`,
       );
     }
+  }
+}
 
-    if (workflowInfo().continueAsNewSuggested) {
-      const compactContext = await compact(input.query, context);
-      if (compactContext.usage) {
-        usage.push(compactContext.usage);
-      }
-      return continueAsNew<typeof agentWorkflow>({
-        query: input.query,
-        continueAsNew: {
-          context: compactContext.context,
-          usage,
-        },
-      });
+export async function agentWorkflowSimple(query: string): Promise<string> {
+  const context: string[] = [];
+
+  while (true) {
+    const agentThought = await thought(query, context);
+    context.push(`<thought>\n${agentThought.thought}\n</thought>`);
+
+    if (agentThought.answer) {
+      return agentThought.answer;
+    }
+
+    if (agentThought.action) {
+      context.push(
+        `<action><reason>\n${agentThought.action.reason}\n</reason><name>${agentThought.action.name}</name><input>${JSON.stringify(agentThought.action.input)}</input></action>`,
+      );
+
+      const agentAction = await action(
+        agentThought.action.name,
+        agentThought.action.input,
+      );
+
+      const agentObservation = await observation(query, context, agentAction);
+      context.push(
+        `<observation>\n${agentObservation.observations}\n</observation>`,
+      );
     }
   }
 }

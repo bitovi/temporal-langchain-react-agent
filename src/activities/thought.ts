@@ -16,6 +16,37 @@ type AgentResult = {
   usage?: AgentUsage;
 };
 
+const AgentResultFormat = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    thought: {
+      type: "string",
+    },
+    action: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        name: {
+          type: "string",
+        },
+        reason: {
+          type: "string",
+        },
+        input: {
+          type: "object",
+          additionalProperties: true,
+        },
+      },
+      required: ["name", "reason", "input"],
+    },
+    answer: {
+      type: "string",
+    },
+  },
+  required: ["thought"],
+};
+
 export async function thought(
   query: string,
   context: string[],
@@ -29,68 +60,22 @@ export async function thought(
   });
 
   const model = getChatModel("high");
-
-  // Use structured output to enforce the response format, same as we define in the prompt
-  const structure = model.withStructuredOutput<AgentResult>(
-    {
-      type: "object",
-      additionalProperties: false,
-      properties: {
-        thought: {
-          type: "string",
-        },
-        action: {
-          type: "object",
-          additionalProperties: false,
-          properties: {
-            name: {
-              type: "string",
-            },
-            reason: {
-              type: "string",
-            },
-            input: {
-              type: "object",
-              additionalProperties: true,
-            },
-          },
-          required: ["name", "reason", "input"],
-        },
-        answer: {
-          type: "string",
-        },
-      },
-      required: ["thought"],
-    },
-    {
-      includeRaw: true,
-    },
-  );
+  const structure = model.withStructuredOutput<AgentResult>(AgentResultFormat, {
+    includeRaw: true,
+  });
 
   const { parsed, raw } = await structure.invoke([
     { role: "user", content: formattedPrompt },
   ]);
 
-  const result = {
-    thought: parsed.thought,
-  } as Partial<AgentResult>;
-
-  if (parsed.hasOwnProperty("answer")) {
-    result.answer = parsed.answer;
-  }
-
-  if (parsed.hasOwnProperty("action")) {
-    result.action = parsed.action;
-  }
-
   // @ts-expect-error this property does exist
   if (raw.usage_metadata) {
     // @ts-expect-error this property does exist
     const usage = raw.usage_metadata as unknown as UsageMetadata;
-    result.usage = calculateUsageCost(usage, "high");
+    parsed.usage = calculateUsageCost(usage, "high");
   }
 
-  return result as AgentResult;
+  return parsed;
 }
 
 function thoughtPromptTemplate() {
