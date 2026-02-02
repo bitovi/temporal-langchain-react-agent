@@ -2,8 +2,7 @@ import { PromptTemplate } from "@langchain/core/prompts";
 
 import { fetchStructuredToolsAsString } from "../internals/tools";
 import { getChatModel } from "../internals/model";
-import { AgentUsage } from "../internals/type";
-import { calculateUsageCost } from "../internals/usage";
+import { calculateUsageCost, AgentUsage } from "../internals/usage";
 import { UsageMetadata } from "@langchain/core/messages";
 
 type AgentResult = {

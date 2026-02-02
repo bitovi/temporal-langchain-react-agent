@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 import { Connection, Client } from "@temporalio/client";
 import { agentWorkflow } from "./workflows";
 import { Config } from "./internals/config";
-import { AgentUsage } from "./internals/type";
+import { AgentUsage } from "./internals/usage";
 
 dotenv.config();
 

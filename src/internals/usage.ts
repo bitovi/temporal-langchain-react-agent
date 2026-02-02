@@ -1,5 +1,11 @@
-import { AgentUsage } from "./type";
 import { UsageMetadata } from "@langchain/core/messages";
+
+export type AgentUsage = {
+  input_tokens: number;
+  output_tokens: number;
+  total_tokens: number;
+  cost: number;
+};
 
 const INPUT_COST_PER_1M_TOKENS_LOW = 0.25;
 const OUTPUT_COST_PER_1M_TOKENS_LOW = 2.0;
@@ -34,7 +40,9 @@ export function calculateUsageCost(
   }
 
   return {
-    ...usage,
+    input_tokens: usage.input_tokens ?? 0,
+    output_tokens: usage.output_tokens ?? 0,
+    total_tokens: usage.total_tokens ?? 0,
     cost: total,
   };
 }

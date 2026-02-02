@@ -4,7 +4,7 @@ import {
   workflowInfo,
 } from "@temporalio/workflow";
 import type * as activities from "./activities";
-import { AgentUsage } from "./internals/type";
+import type { AgentUsage } from "./internals/usage";
 
 const { thought, action, observation, compact } = proxyActivities<
   typeof activities

@@ -1,8 +1,7 @@
 import { PromptTemplate } from "@langchain/core/prompts";
 
 import { getChatModel } from "../internals/model";
-import { AgentUsage } from "../internals/type";
-import { calculateUsageCost } from "../internals/usage";
+import { AgentUsage, calculateUsageCost } from "../internals/usage";
 
 type ObservationResult = {
   observations: string;
