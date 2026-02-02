@@ -8,17 +8,7 @@ interface TemporalClientOptions {
   };
 }
 
-type ModelProvider = "openai" | "anthropic" | "ollama";
-
 export class Config {
-  static get MODEL_PROVIDER(): ModelProvider {
-    if (!process.env.MODEL_PROVIDER) {
-      return "openai";
-    }
-
-    return process.env.MODEL_PROVIDER as ModelProvider;
-  }
-
   static get OPENAI_API_KEY(): string {
     if (!process.env.OPENAI_API_KEY) {
       throw new Error("OPENAI_API_KEY is not defined in environment variables");
@@ -27,38 +17,20 @@ export class Config {
     return process.env.OPENAI_API_KEY;
   }
 
-  static get OPENAI_MODEL(): string {
-    if (!process.env.OPENAI_MODEL) {
-      return "gpt-5";
+  static get OPENAI_MODEL_LOW(): string {
+    if (!process.env.OPENAI_MODEL_LOW) {
+      return "gpt-5-mini-2025-08-07";
     }
 
-    return process.env.OPENAI_MODEL;
+    return process.env.OPENAI_MODEL_LOW;
   }
 
-  static get ANTHROPIC_API_KEY(): string {
-    if (!process.env.ANTHROPIC_API_KEY) {
-      throw new Error(
-        "ANTHROPIC_API_KEY is not defined in environment variables",
-      );
+  static get OPENAI_MODEL_HIGH(): string {
+    if (!process.env.OPENAI_MODEL_HIGH) {
+      return "gpt-5.2-2025-12-11";
     }
 
-    return process.env.ANTHROPIC_API_KEY;
-  }
-
-  static get OLLAMA_MODEL(): string {
-    if (!process.env.OLLAMA_MODEL) {
-      return "gpt-oss:20b";
-    }
-
-    return process.env.OLLAMA_MODEL;
-  }
-
-  static get ANTHROPIC_MODEL(): string {
-    if (!process.env.ANTHROPIC_MODEL) {
-      return "claude-sonnet-4-5";
-    }
-
-    return process.env.ANTHROPIC_MODEL;
+    return process.env.OPENAI_MODEL_HIGH;
   }
 
   static get TEMPORAL_NAMESPACE(): string {

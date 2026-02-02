@@ -42,7 +42,9 @@ export async function agentWorkflow(
       usage.push(agentThought.usage);
     }
 
-    if (agentThought.__type === "answer") {
+    context.push(`<thought>\n${agentThought.thought}\n</thought>`);
+
+    if (agentThought.answer) {
       // Calculate the final usage metrics based on the collected metadata
       const finalUsage: UsageMetadata = usage.reduce(
         (acc, curr) => {
@@ -61,30 +63,30 @@ export async function agentWorkflow(
       return { answer: agentThought.answer, usage: finalUsage };
     }
 
-    context.push(`<thought>\n${agentThought.thought}\n</thought>`);
+    if (agentThought.action) {
+      context.push(
+        `<action><reason>\n${agentThought.action.reason}\n</reason><name>${agentThought.action.name}</name><input>${JSON.stringify(agentThought.action.input)}</input></action>`,
+      );
 
-    context.push(
-      `<action><reason>\n${agentThought.action.reason}\n</reason><name>${agentThought.action.name}</name><input>${JSON.stringify(agentThought.action.input)}</input></action>`,
-    );
+      const agentAction = await action(
+        agentThought.action.name,
+        agentThought.action.input,
+      );
 
-    const agentAction = await action(
-      agentThought.action.name,
-      agentThought.action.input,
-    );
+      const agentObservation = await observation(
+        input.query,
+        context,
+        agentAction,
+      );
 
-    const agentObservation = await observation(
-      input.query,
-      context,
-      agentAction,
-    );
+      if (agentObservation.usage) {
+        usage.push(agentObservation.usage);
+      }
 
-    if (agentObservation.usage) {
-      usage.push(agentObservation.usage);
+      context.push(
+        `<observation>\n${agentObservation.observations}\n</observation>`,
+      );
     }
-
-    context.push(
-      `<observation>\n${agentObservation.observations}\n</observation>`,
-    );
 
     if (workflowInfo().continueAsNewSuggested) {
       const compactContext = await compact(input.query, context);

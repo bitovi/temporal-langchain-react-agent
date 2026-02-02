@@ -1,6 +1,97 @@
+import { UsageMetadata } from "@langchain/core/messages";
 import { PromptTemplate } from "@langchain/core/prompts";
 
-export function thoughtPromptTemplate() {
+import { fetchStructuredToolsAsString } from "../internals/tools";
+import { getChatModel } from "../internals/model";
+
+type AgentResult = {
+  thought: string;
+  action?: {
+    name: string;
+    reason: string;
+    input: string | object;
+  };
+  answer?: string;
+  usage?: UsageMetadata;
+};
+
+export async function thought(
+  query: string,
+  context: string[],
+): Promise<AgentResult> {
+  const promptTemplate = thoughtPromptTemplate();
+  const formattedPrompt = await promptTemplate.format({
+    userQuery: query,
+    currentDate: new Date().toISOString().split("T")[0],
+    previousSteps: context.join("\n"),
+    availableActions: fetchStructuredToolsAsString(),
+  });
+
+  const model = getChatModel("high");
+
+  // Use structured output to enforce the response format, same as we define in the prompt
+  const structure = model.withStructuredOutput(
+    {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        thought: {
+          type: "string",
+        },
+        action: {
+          type: "object",
+          additionalProperties: false,
+          properties: {
+            name: {
+              type: "string",
+            },
+            reason: {
+              type: "string",
+            },
+            input: {
+              type: "object",
+              additionalProperties: true,
+            },
+          },
+          required: ["name", "reason", "input"],
+        },
+        answer: {
+          type: "string",
+        },
+      },
+      required: ["thought"],
+    },
+    {
+      includeRaw: true,
+    },
+  );
+
+  const { parsed, raw } = await structure.invoke([
+    { role: "user", content: formattedPrompt },
+  ]);
+
+  const result = {
+    thought: parsed.thought,
+  } as Partial<AgentResult>;
+
+  if (parsed.hasOwnProperty("answer")) {
+    result.answer = parsed.answer;
+  }
+
+  if (parsed.hasOwnProperty("action")) {
+    result.action = parsed.action;
+  }
+
+  // @ts-expect-error this property should exist on AIMessage
+  if (raw.usage_metadata) {
+    // @ts-expect-error this property should exist on AIMessage
+    result.usage = raw.usage_metadata;
+  }
+
+  return result as AgentResult;
+}
+
+function thoughtPromptTemplate() {
   const templateString = `You are a ReAct (Reasoning and Acting) agent tasked with answering the following query:
 
 <user-query>
@@ -63,77 +154,6 @@ Based on that information, provide your thought process and decide on the next a
       "previousSteps",
       "availableActions",
     ],
-  });
-
-  return prompt;
-}
-
-export function observationPromptTemplate() {
-  const templateString = `You are a ReAct (Reasoning and Acting) agent tasked with answering the following query:
-
-<user-query>
-{userQuery}
-</user-query>
-
-Your goal is to extract insights from the results of your last action and provide a concise observation.
-
-Instructions:
-1. Analyze the query, previous reasoning steps, and observations.
-2. Extract insights from the latest action result.
-3. Respond with a concise observation that summarizes the results of the last action taken.
-
-You do not need to include any XML tags such as <thought>, <action>, or <observation> in your response, those will be added automatically by the Agent Workflow.
-
-In this observation step, consider the following information from previous steps:
-
-<previous-steps>
-{previousSteps}
-</previous-steps>
-
-Provide your observation based on the latest action result:
-<action-result>
-{actionResult}
-</action-result>
-`;
-
-  const prompt = new PromptTemplate({
-    template: templateString,
-    inputVariables: ["userQuery", "previousSteps", "actionResult"],
-  });
-
-  return prompt;
-}
-
-export function compactPromptTemplate() {
-  const templateString = `You are a summarization agent tasked with compacting the context of a ReAct (Reasoning and Acting) agent.
-  
-Your goal is to summarize the provided context, attempting to preserve the most important parts of the context history.
-
-Instructions:
-1. Review the provided context history.
-2. Summarize the context, focusing on preserving key information and recent steps.
-3. Ensure that the most recent parts of the context remain intact.
-
-You do not need to include any XML tags such as <thought>, <action>, or <observation> in your response, those will be added automatically by the Agent Workflow.
-
-For reference, here is the oringinal user question that the agent is trying to answer:
-
-<user-query>
-{userQuery}
-</user-query>
-
-Here is the context history to be compacted:
-
-<context-history>
-{contextHistory}
-</context-history>
-
-Provide a compacted version of the context history, preserving important details and recent steps.
-`;
-
-  const prompt = new PromptTemplate({
-    template: templateString,
-    inputVariables: ["userQuery", "contextHistory"],
   });
 
   return prompt;
